@@ -10,8 +10,8 @@ import LibIcon from '../../../components/LibIcon';
 
 const useStyles = createStyles((theme, params: { position?: MenuPosition; itemCount: number; selected: number }) => ({
   tooltip: {
-    backgroundColor: theme.colors.dark[6],
-    color: theme.colors.dark[2],
+    backgroundColor: 'rgba(12, 12, 14, 0.75)',
+    color: '#fff3fc',
     borderRadius: theme.radius.sm,
     maxWidth: 350,
     whiteSpace: 'normal',
@@ -19,35 +19,68 @@ const useStyles = createStyles((theme, params: { position?: MenuPosition; itemCo
   container: {
     position: 'absolute',
     pointerEvents: 'none',
-    marginTop: params.position === 'top-left' || params.position === 'top-right' ? 5 : 0,
-    marginLeft: params.position === 'top-left' || params.position === 'bottom-left' ? 5 : 0,
-    marginRight: params.position === 'top-right' || params.position === 'bottom-right' ? 5 : 0,
-    marginBottom: params.position === 'bottom-left' || params.position === 'bottom-right' ? 5 : 0,
+    marginTop: params.position === 'top-left' || params.position === 'top-right' ? 20 : 0,
+    marginLeft: params.position === 'top-left' || params.position === 'bottom-left' ? 20 : 0,
+    marginRight: params.position === 'top-right' || params.position === 'bottom-right' ? 20 : 0,
+    marginBottom: params.position === 'bottom-left' || params.position === 'bottom-right' ? 20 : 0,
     right: params.position === 'top-right' || params.position === 'bottom-right' ? 1 : undefined,
     left: params.position === 'bottom-left' ? 1 : undefined,
     bottom: params.position === 'bottom-left' || params.position === 'bottom-right' ? 1 : undefined,
     fontFamily: 'Roboto',
-    width: 384,
+    width: 340,
+    backgroundColor: '#141414',
+    borderRadius: theme.radius.sm,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+    overflow: 'visible !important',
+
+    '&::after': {
+      content: '""',
+      display: 'block',
+      position: 'absolute',
+      borderRadius: theme.radius.sm,
+      top: -2,
+      left: -2,
+      right: -2,
+      bottom: -2,
+      zIndex: 100,
+      pointerEvents: 'none',
+      backgroundImage: `
+        linear-gradient(to right, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to bottom, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to left, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to bottom, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to left, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to top, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to right, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to top, #ffa3e9 2px, transparent 2px)
+      `,
+      backgroundPosition: `
+        0 0, 0 0,
+        100% 0, 100% 0,
+        100% 100%, 100% 100%,
+        0 100%, 0 100%
+      `,
+      backgroundSize: '12px 12px',
+      backgroundRepeat: 'no-repeat',
+    },
   },
   buttonsWrapper: {
     height: 'fit-content',
     maxHeight: 415,
     overflow: 'hidden',
-    borderRadius: params.itemCount <= 6 || params.selected === params.itemCount - 1 ? theme.radius.md : undefined,
-    backgroundColor: theme.colors.dark[8],
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+    padding: '0 12px 12px 12px',
   },
   scrollArrow: {
-    backgroundColor: theme.colors.dark[8],
+    backgroundColor: 'transparent',
     textAlign: 'center',
-    borderBottomLeftRadius: theme.radius.md,
-    borderBottomRightRadius: theme.radius.md,
     height: 25,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollArrowIcon: {
-    color: theme.colors.dark[2],
-    fontSize: 20,
+    color: theme.colors.gray[5],
+    fontSize: 16,
   },
 }));
 
@@ -219,7 +252,7 @@ const ListMenu: React.FC = () => {
             <Header title={menu.title} />
             <Box className={classes.buttonsWrapper} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => moveMenu(e)}>
               <FocusTrap active={visible}>
-                <Stack spacing={8} p={8} sx={{ overflowY: 'scroll' }}>
+                <Stack spacing={6} sx={{ overflowY: 'scroll', paddingRight: 4 }}>
                   {menu.items.map((item, index) => (
                     <React.Fragment key={`menu-item-${index}`}>
                       {item.label && (
@@ -229,6 +262,7 @@ const ListMenu: React.FC = () => {
                           scrollIndex={indexStates[index]}
                           checked={checkedStates[index]}
                           ref={listRefs}
+                          active={selected === index}
                         />
                       )}
                     </React.Fragment>

@@ -6,7 +6,6 @@ import ContextButton from './components/ContextButton';
 import { fetchNui } from '../../../utils/fetchNui';
 import ReactMarkdown from 'react-markdown';
 import HeaderButton from './components/HeaderButton';
-import ScaleFade from '../../../transitions/ScaleFade';
 import MarkdownComponents from '../../../config/MarkdownComponents';
 
 const openMenu = (id: string | undefined) => {
@@ -17,32 +16,89 @@ const useStyles = createStyles((theme) => ({
   container: {
     position: 'absolute',
     top: '15%',
-    right: '25%',
-    width: 320,
-    height: 580,
+    right: '15%',
+    width: 340,
+    maxHeight: 580,
+    backgroundColor: '#141414',
+    borderRadius: 8,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'visible !important',
+    fontFamily: 'Roboto, sans-serif',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    transform: 'translate3d(0, 0, 0)',
+
+    '&::after': {
+      content: '""',
+      display: 'block',
+      position: 'absolute',
+      borderRadius: theme.radius.sm,
+      top: -2,
+      left: -2,
+      right: -2,
+      bottom: -2,
+      zIndex: 100,
+      pointerEvents: 'none',
+      backgroundImage: `
+        linear-gradient(to right, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to bottom, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to left, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to bottom, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to left, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to top, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to right, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to top, #ffa3e9 2px, transparent 2px)
+      `,
+      backgroundPosition: `
+        0 0, 0 0,
+        100% 0, 100% 0,
+        100% 100%, 100% 100%,
+        0 100%, 0 100%
+      `,
+      backgroundSize: '12px 12px',
+      backgroundRepeat: 'no-repeat',
+    },
   },
   header: {
-    justifyContent: 'center',
+    display: 'flex',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    gap: 6,
+    padding: '16px 20px 8px 20px',
+    gap: 12,
+    flexShrink: 0,
   },
   titleContainer: {
-    borderRadius: 4,
-    flex: '1 85%',
-    backgroundColor: theme.colors.dark[6],
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleText: {
-    color: theme.colors.dark[0],
-    padding: 6,
+    color: '#fff3fc',
+    fontSize: 22,
+    fontWeight: 800,
+    lineHeight: 1.2,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    fontFamily: 'Roboto, sans-serif',
+    letterSpacing: '-0.02em',
   },
   buttonsContainer: {
-    height: 560,
-    overflowY: 'scroll',
+    flex: 1,
+    overflowY: 'auto',
+    minHeight: 0,
+    padding: '12px 12px 12px 12px',
+    '&::-webkit-scrollbar': {
+      width: 4,
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: 4,
+    },
   },
   buttonsFlexWrapper: {
-    gap: 3,
+    gap: 8,
   },
 }));
 
@@ -85,28 +141,30 @@ const ContextMenu: React.FC = () => {
   });
 
   return (
-    <Box className={classes.container}>
-      <ScaleFade visible={visible}>
-        <Flex className={classes.header}>
-          {contextMenu.menu && (
-            <HeaderButton icon="chevron-left" iconSize={16} handleClick={() => openMenu(contextMenu.menu)} />
-          )}
-          <Box className={classes.titleContainer}>
-            <Text className={classes.titleText}>
-              <ReactMarkdown components={MarkdownComponents}>{contextMenu.title}</ReactMarkdown>
-            </Text>
+    <>
+      {visible && (
+        <Box className={classes.container}>
+          <Flex className={classes.header}>
+            {contextMenu.menu && (
+              <HeaderButton icon="chevron-left" iconSize={16} handleClick={() => openMenu(contextMenu.menu)} />
+            )}
+            <Box className={classes.titleContainer}>
+              <Text className={classes.titleText}>
+                <ReactMarkdown components={MarkdownComponents}>{contextMenu.title}</ReactMarkdown>
+              </Text>
+            </Box>
+            <HeaderButton icon="xmark" canClose={contextMenu.canClose} iconSize={18} handleClick={closeContext} />
+          </Flex>
+          <Box className={classes.buttonsContainer}>
+            <Stack className={classes.buttonsFlexWrapper}>
+              {Object.entries(contextMenu.options).map((option, index) => (
+                <ContextButton option={option} key={`context-item-${index}`} />
+              ))}
+            </Stack>
           </Box>
-          <HeaderButton icon="xmark" canClose={contextMenu.canClose} iconSize={18} handleClick={closeContext} />
-        </Flex>
-        <Box className={classes.buttonsContainer}>
-          <Stack className={classes.buttonsFlexWrapper}>
-            {Object.entries(contextMenu.options).map((option, index) => (
-              <ContextButton option={option} key={`context-item-${index}`} />
-            ))}
-          </Stack>
         </Box>
-      </ScaleFade>
-    </Box>
+      )}
+    </>
   );
 };
 

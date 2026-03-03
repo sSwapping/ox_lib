@@ -11,8 +11,35 @@ interface Props {
 }
 
 const useStyles = createStyles((theme) => ({
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    color: '#fff3fc',
+    borderRadius: 6,
+    transition: 'all 0.2s ease',
+    '&:focus': {
+      borderColor: 'rgba(255, 163, 233, 0.5)',
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderColor: 'rgba(255, 163, 233, 0.4)',
+    },
+    '&::placeholder': {
+      color: 'rgba(255, 163, 233, 0.2)',
+    },
+  },
+  label: {
+    color: theme.colors.gray[4],
+    fontWeight: 500,
+    fontSize: 14,
+    marginBottom: 4,
+  },
   eyeIcon: {
-    color: theme.colors.dark[2],
+    color: theme.colors.gray[6],
+    transition: 'color 0.2s',
+    '&:hover': {
+      color: '#ffa3e9',
+    },
   },
 }));
 
@@ -33,6 +60,8 @@ const InputField: React.FC<Props> = (props) => {
           maxLength={props.row.max}
           disabled={props.row.disabled}
           withAsterisk={props.row.required}
+          classNames={{ input: classes.input, label: classes.label }}
+          variant="filled"
         />
       ) : (
         <PasswordInput
@@ -46,6 +75,8 @@ const InputField: React.FC<Props> = (props) => {
           maxLength={props.row.max}
           disabled={props.row.disabled}
           withAsterisk={props.row.required}
+          classNames={{ input: classes.input, label: classes.label }}
+          variant="filled"
           visibilityToggleIcon={({ reveal, size }) => (
             <LibIcon
               icon={reveal ? 'eye-slash' : 'eye'}

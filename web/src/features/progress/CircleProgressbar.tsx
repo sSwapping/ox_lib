@@ -1,17 +1,11 @@
-import React from 'react';
-import {createStyles, keyframes, RingProgress, Stack, Text, useMantineTheme} from '@mantine/core';
-import {useNuiEvent} from '../../hooks/useNuiEvent';
-import {fetchNui} from '../../utils/fetchNui';
+import React, { useEffect } from 'react';
+import { Box, createStyles, RingProgress, Stack, Text, useMantineTheme } from '@mantine/core';
+import { useNuiEvent } from '../../hooks/useNuiEvent';
+import { fetchNui } from '../../utils/fetchNui';
 import ScaleFade from '../../transitions/ScaleFade';
-import type {CircleProgressbarProps} from '../../typings';
+import type { CircleProgressbarProps } from '../../typings';
 
-// 33.5 is the r of the circle
-const progressCircle = keyframes({
-  '0%': { strokeDasharray: `0, ${33.5 * 2 * Math.PI}` },
-  '100%': { strokeDasharray: `${33.5 * 2 * Math.PI}, 0` },
-});
-
-const useStyles = createStyles((theme, params: { position: 'middle' | 'bottom'; duration: number }) => ({
+const useStyles = createStyles((theme, params: { position: 'middle' | 'bottom' }) => ({
   container: {
     width: '100%',
     height: params.position === 'middle' ? '100%' : '20%',
@@ -20,32 +14,40 @@ const useStyles = createStyles((theme, params: { position: 'middle' | 'bottom'; 
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  progress: {
-    '> svg > circle:nth-child(1)': {
-      stroke: theme.colors.dark[5],
-    },
-    // Scuffed way of grabbing the first section and animating it
-    '> svg > circle:nth-child(2)': {
-      transition: 'none',
-      animation: `${progressCircle} linear forwards`,
-      animationDuration: `${params.duration}ms`,
-    },
-  },
-  value: {
-    textAlign: 'center',
-    fontFamily: 'Roboto Mono',
-    textShadow: theme.shadows.sm,
-    color: theme.colors.gray[3],
-  },
-  label: {
-    textAlign: 'center',
-    textShadow: theme.shadows.sm,
-    color: theme.colors.gray[3],
-    height: 25,
+    pointerEvents: 'none',
   },
   wrapper: {
     marginTop: params.position === 'middle' ? 25 : undefined,
+    position: 'relative',
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#fff3fc',
+    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.02em',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  value: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#ffa3e9',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  ring: {
+    filter: 'drop-shadow(0 0 4px rgba(255, 163, 233, 0.2))',
+    '& circle:first-of-type': {
+      stroke: 'rgba(20, 20, 20, 0.8)',
+      strokeWidth: 8,
+    },
+    '& circle:last-of-type': {
+      stroke: '#ffa3e9',
+      strokeLinecap: 'round',
+      filter: 'drop-shadow(0 0 6px rgba(255, 163, 233, 0.4))',
+      transition: 'stroke-dashoffset 100ms linear',
+    },
   },
 }));
 
@@ -56,10 +58,9 @@ const CircleProgressbar: React.FC = () => {
   const [value, setValue] = React.useState(0);
   const [label, setLabel] = React.useState('');
   const theme = useMantineTheme();
-  const { classes } = useStyles({ position, duration: progressDuration });
+  const { classes } = useStyles({ position });
 
   useNuiEvent('progressCancel', () => {
-    setValue(99);
     setVisible(false);
   });
 
@@ -70,34 +71,50 @@ const CircleProgressbar: React.FC = () => {
     setLabel(data.label || '');
     setProgressDuration(data.duration);
     setPosition(data.position || 'middle');
-    const onePercent = data.duration * 0.01;
-    const updateProgress = setInterval(() => {
-      setValue((previousValue) => {
-        const newValue = previousValue + 1;
-        newValue >= 100 && clearInterval(updateProgress);
-        return newValue;
-      });
-    }, onePercent);
   });
 
+  useEffect(() => {
+    if (!visible || progressDuration <= 0) return;
+
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const newValue = Math.min((elapsed / progressDuration) * 100, 100);
+
+      setValue(newValue);
+
+      if (newValue >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setVisible(false);
+          fetchNui('progressComplete');
+        }, 200);
+      }
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [visible, progressDuration]);
+
   return (
-    <>
-      <Stack spacing={0} className={classes.container}>
-        <ScaleFade visible={visible} onExitComplete={() => fetchNui('progressComplete')}>
-          <Stack spacing={0} align="center" className={classes.wrapper}>
-            <RingProgress
-              size={90}
-              thickness={7}
-              sections={[{ value: 0, color: theme.primaryColor }]}
-              onAnimationEnd={() => setVisible(false)}
-              className={classes.progress}
-              label={<Text className={classes.value}>{value}%</Text>}
-            />
-            {label && <Text className={classes.label}>{label}</Text>}
-          </Stack>
-        </ScaleFade>
-      </Stack>
-    </>
+    <Box className={classes.container}>
+      <ScaleFade visible={visible}>
+        <Stack spacing={0} align="center" className={classes.wrapper}>
+          <RingProgress
+            size={90}
+            thickness={8}
+            roundCaps
+            sections={[{ value: value, color: '#ffa3e9' }]}
+            className={classes.ring}
+            label={
+              <Text align="center" className={classes.value}>
+                {Math.round(value)}%
+              </Text>
+            }
+          />
+          {label && <Text className={classes.label}>{label}</Text>}
+        </Stack>
+      </ScaleFade>
+    </Box>
   );
 };
 

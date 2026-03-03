@@ -1,4 +1,5 @@
 import { Checkbox, createStyles } from '@mantine/core';
+import React from 'react';
 
 const useStyles = createStyles((theme) => ({
   root: {
@@ -6,12 +7,17 @@ const useStyles = createStyles((theme) => ({
     alignItems: 'center',
   },
   input: {
-    backgroundColor: theme.colors.dark[7],
-    '&:checked': { backgroundColor: theme.colors.dark[2], borderColor: theme.colors.dark[2] },
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    cursor: 'pointer',
+    '&:checked': {
+      backgroundColor: '#ffa3e9',
+      borderColor: '#ffa3e9',
+    },
   },
   inner: {
     '> svg > path': {
-      fill: theme.colors.dark[6],
+      fill: theme.colors.dark[9],
     },
   },
 }));
@@ -21,6 +27,7 @@ const CustomCheckbox: React.FC<{ checked: boolean }> = ({ checked }) => {
   return (
     <Checkbox
       checked={checked}
+      readOnly
       size="md"
       classNames={{ root: classes.root, input: classes.input, inner: classes.inner }}
     />

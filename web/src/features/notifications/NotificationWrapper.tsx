@@ -8,55 +8,88 @@ import type { NotificationProps } from '../../typings';
 import MarkdownComponents from '../../config/MarkdownComponents';
 import LibIcon from '../../components/LibIcon';
 
-const useStyles = createStyles((theme) => ({
+const useStyles = createStyles((theme, { iconColor }: { iconColor: string }) => ({
   container: {
     width: 300,
     height: 'fit-content',
-    backgroundColor: theme.colors.dark[6],
+    backgroundColor: '#141414',
     color: theme.colors.dark[0],
     padding: 12,
     borderRadius: theme.radius.sm,
     fontFamily: 'Roboto',
     boxShadow: theme.shadows.sm,
+
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      borderRadius: theme.radius.sm,
+      top: -2,
+      left: -2,
+      right: -2,
+      bottom: -2,
+
+      backgroundImage: `
+        linear-gradient(to right, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to bottom, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to left, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to bottom, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to left, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to top, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to right, ${iconColor} 2px, transparent 2px),
+        linear-gradient(to top, ${iconColor} 2px, transparent 2px)
+      `,
+      backgroundPosition: `
+        0 0, 0 0,
+        100% 0, 100% 0,
+        100% 100%, 100% 100%,
+        0 100%, 0 100%
+      `,
+      backgroundSize: '10px 10px',
+      backgroundRepeat: 'no-repeat',
+      pointerEvents: 'none',
+      transition: 'background-image 0.3s ease',
+    },
   },
   title: {
     fontWeight: 500,
     lineHeight: 'normal',
+    color: '#fff3fc',
   },
   description: {
     fontSize: 12,
-    color: theme.colors.dark[2],
+    color: '#fff3fc',
     fontFamily: 'Roboto',
     lineHeight: 'normal',
   },
   descriptionOnly: {
     fontSize: 14,
-    color: theme.colors.dark[2],
+    color: '#fff3fc',
     fontFamily: 'Roboto',
     lineHeight: 'normal',
   },
 }));
 
-const createAnimation = (from: string, to: string, visible: boolean) => keyframes({
-  from: {
-    opacity: visible ? 0 : 1,
-    transform: `translate${from}`,
-  },
-  to: {
-    opacity: visible ? 1 : 0,
-    transform: `translate${to}`,
-  },
-});
+const createAnimation = (from: string, to: string, visible: boolean) =>
+  keyframes({
+    from: {
+      opacity: visible ? 0 : 1,
+      transform: `translate${from}`,
+    },
+    to: {
+      opacity: visible ? 1 : 0,
+      transform: `translate${to}`,
+    },
+  });
 
 const getAnimation = (visible: boolean, position: string) => {
-  const animationOptions = visible ? '0.2s ease-out forwards' : '0.4s ease-in forwards'
+  const animationOptions = visible ? '0.2s ease-out forwards' : '0.4s ease-in forwards';
   let animation: { from: string; to: string };
 
   if (visible) {
-    animation = position.includes('bottom') ? { from: 'Y(30px)', to: 'Y(0px)' } : { from: 'Y(-30px)', to:'Y(0px)' };
+    animation = position.includes('bottom') ? { from: 'Y(30px)', to: 'Y(0px)' } : { from: 'Y(-30px)', to: 'Y(0px)' };
   } else {
     if (position.includes('right')) {
-      animation = { from: 'X(0px)', to: 'X(100%)' }
+      animation = { from: 'X(0px)', to: 'X(100%)' };
     } else if (position.includes('left')) {
       animation = { from: 'X(0px)', to: 'X(-100%)' };
     } else if (position === 'top-center') {
@@ -68,7 +101,7 @@ const getAnimation = (visible: boolean, position: string) => {
     }
   }
 
-  return `${createAnimation(animation.from, animation.to, visible)} ${animationOptions}`
+  return `${createAnimation(animation.from, animation.to, visible)} ${animationOptions}`;
 };
 
 const durationCircle = keyframes({
@@ -77,7 +110,6 @@ const durationCircle = keyframes({
 });
 
 const Notifications: React.FC = () => {
-  const { classes } = useStyles();
   const [toastKey, setToastKey] = useState(0);
 
   useNuiEvent<NotificationProps>('notify', (data) => {
@@ -91,7 +123,7 @@ const Notifications: React.FC = () => {
 
     data.showDuration = data.showDuration !== undefined ? data.showDuration : true;
 
-    if (toastId) setToastKey(prevKey => prevKey + 1);
+    if (toastId) setToastKey((prevKey) => prevKey + 1);
 
     // Backwards compat with old notifications
     switch (position) {
@@ -123,27 +155,28 @@ const Notifications: React.FC = () => {
     if (!data.iconColor) {
       switch (data.type) {
         case 'error':
-          iconColor = 'red.6';
+          iconColor = 'rgba(250, 82, 82, 1)';
           break;
         case 'success':
-          iconColor = 'teal.6';
+          iconColor = 'rgba(18, 184, 134, 1)';
           break;
         case 'warning':
-          iconColor = 'yellow.6';
+          iconColor = 'rgba(250, 176, 5, 1)';
           break;
         default:
-          iconColor = 'blue.6';
+          iconColor = 'rgba(34, 139, 230, 1)';
           break;
       }
     } else {
-      iconColor = tinycolor(data.iconColor).toRgbString();
+      iconColor = data.iconColor;
     }
 
-    toast.custom(
-      (t) => (
+    const NotificationContent = () => {
+      const { classes } = useStyles({ iconColor });
+      return (
         <Box
           sx={{
-            animation: getAnimation(t.visible, position),
+            animation: getAnimation(true, position),
             ...data.style,
           }}
           className={`${classes.container}`}
@@ -205,6 +238,14 @@ const Notifications: React.FC = () => {
               )}
             </Stack>
           </Group>
+        </Box>
+      );
+    };
+
+    toast.custom(
+      (t) => (
+        <Box sx={{ animation: getAnimation(t.visible, position) }}>
+          <NotificationContent />
         </Box>
       ),
       {

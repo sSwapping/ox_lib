@@ -1,26 +1,31 @@
-import { Box, createStyles, Text } from '@mantine/core';
+import { ActionIcon, Box, createStyles, Text } from '@mantine/core';
 import React from 'react';
+import LibIcon from '../../../components/LibIcon';
 
 const useStyles = createStyles((theme) => ({
   container: {
-    textAlign: 'center',
-    borderTopLeftRadius: theme.radius.md,
-    borderTopRightRadius: theme.radius.md,
-    backgroundColor: theme.colors.dark[6],
-    height: 60,
-    width: 384,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: '16px 20px 8px 20px',
+    width: '100%',
   },
   heading: {
-    fontSize: 24,
+    fontSize: 22,
+    fontFamily: 'Roboto, sans-serif',
+    fontWeight: 800,
+    color: theme.white,
+    letterSpacing: '-0.02em',
     textTransform: 'uppercase',
-    fontWeight: 500,
   },
 }));
 
-const Header: React.FC<{ title: string }> = ({ title }) => {
+interface HeaderProps {
+  title: string;
+  onClose?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ title }) => {
   const { classes } = useStyles();
 
   return (

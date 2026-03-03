@@ -1,4 +1,4 @@
-import { Button, Group, Modal, Stack } from '@mantine/core';
+import { Button, Group, Modal, Stack, createStyles } from '@mantine/core';
 import React from 'react';
 import { useNuiEvent } from '../../hooks/useNuiEvent';
 import { useLocales } from '../../providers/LocaleProvider';
@@ -23,7 +23,140 @@ export type FormValues = {
   }[];
 };
 
+const useStyles = createStyles((theme) => ({
+  modal: {
+    backgroundColor: '#141414',
+    borderRadius: 8,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+    fontFamily: 'Roboto, sans-serif',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+  },
+  header: {
+    backgroundColor: 'transparent',
+    padding: '16px 20px 8px 20px',
+    justifyContent: 'center',
+  },
+  title: {
+    color: '#fff3fc',
+    fontSize: 22,
+    fontWeight: 800,
+    lineHeight: 1.2,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    fontFamily: 'Roboto, sans-serif',
+    letterSpacing: '-0.02em',
+    width: '100%',
+  },
+  body: {
+    padding: '12px',
+    '&::-webkit-scrollbar': {
+      width: 4,
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: 4,
+    },
+
+    '&::after': {
+      content: '""',
+      display: 'block',
+      position: 'absolute',
+      borderRadius: 4,
+      top: -2,
+      left: -2,
+      right: -2,
+      bottom: -2,
+      zIndex: 100,
+      pointerEvents: 'none',
+      backgroundImage: `
+        linear-gradient(to right, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to bottom, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to left, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to bottom, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to left, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to top, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to right, #ffa3e9 2px, transparent 2px),
+        linear-gradient(to top, #ffa3e9 2px, transparent 2px)
+      `,
+      backgroundPosition: `
+        0 0, 0 0,
+        100% 0, 100% 0,
+        100% 100%, 100% 100%,
+        0 100%, 0 100%
+      `,
+      backgroundSize: '12px 12px',
+      backgroundRepeat: 'no-repeat',
+    },
+  },
+  button: {
+    height: 44,
+    minWidth: 100,
+    padding: '0 20px',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
+    borderRadius: 6,
+    color: '#fff3fc',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    fontSize: 15,
+    fontWeight: 500,
+    fontFamily: 'Roboto, sans-serif',
+    textTransform: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    position: 'relative',
+    overflow: 'hidden',
+
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+      borderColor: 'rgba(255, 163, 233, 0.3)',
+      color: '#ffa3e9',
+      transform: 'translateY(-1px)',
+    },
+
+    '&:active': {
+      transform: 'translateY(1px)',
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      boxShadow: 'none',
+    },
+
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+      transform: 'none',
+      boxShadow: 'none',
+      color: theme.colors.gray[6],
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid #ffa3e9',
+      outlineOffset: 2,
+    },
+  },
+  cancelButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    color: theme.colors.gray[4],
+    borderColor: 'transparent',
+
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      color: '#fff',
+      borderColor: 'rgba(255, 255, 255, 0.15)',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+      transform: 'translateY(-1px)',
+    },
+
+    '&:active': {
+      transform: 'translateY(1px)',
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    },
+  },
+}));
+
 const InputDialog: React.FC = () => {
+  const { classes, cx } = useStyles();
   const [fields, setFields] = React.useState<InputProps>({
     heading: '',
     rows: [{ type: 'input', label: '' }],
@@ -41,23 +174,19 @@ const InputDialog: React.FC = () => {
     setFields(data);
     setVisible(true);
     data.rows.forEach((row, index) => {
-      fieldForm.insert(
-        index,
-        {
-          value:
-            row.type !== 'checkbox'
-              ? row.type === 'date' || row.type === 'date-range' || row.type === 'time'
-                ? // Set date to current one if default is set to true
-                  row.default === true
-                  ? new Date().getTime()
-                  : Array.isArray(row.default)
-                  ? row.default.map((date) => new Date(date).getTime())
-                  : row.default && new Date(row.default).getTime()
-                : row.default
-              : row.checked,
-        } || { value: null }
-      );
-      // Backwards compat with new Select data type
+      fieldForm.insert(index, {
+        value:
+          row.type !== 'checkbox'
+            ? row.type === 'date' || row.type === 'date-range' || row.type === 'time'
+              ? // Set date to current one if default is set to true
+                row.default === true
+                ? new Date().getTime()
+                : Array.isArray(row.default)
+                ? row.default.map((date) => new Date(date).getTime())
+                : row.default && new Date(row.default).getTime()
+              : row.default
+            : row.checked,
+      });
       if (row.type === 'select' || row.type === 'multi-select') {
         row.options = row.options.map((option) =>
           !option.label ? { ...option, label: option.value } : option
@@ -103,8 +232,13 @@ const InputDialog: React.FC = () => {
         centered
         closeOnEscape={fields.options?.allowCancel !== false}
         closeOnClickOutside={false}
-        size={fields.options?.size || 'xs'}
-        styles={{ title: { textAlign: 'center', width: '100%', fontSize: 18 } }}
+        size={fields.options?.size || 'sm'}
+        classNames={{
+          modal: classes.modal,
+          header: classes.header,
+          title: classes.title,
+          body: classes.body,
+        }}
         title={fields.heading}
         withCloseButton={false}
         overlayOpacity={0.5}
@@ -112,7 +246,7 @@ const InputDialog: React.FC = () => {
         exitTransitionDuration={150}
       >
         <form onSubmit={onSubmit}>
-          <Stack>
+          <Stack spacing="xs">
             {fieldForm.fields.map((item, index) => {
               const row = fields.rows[index];
               return (
@@ -151,18 +285,17 @@ const InputDialog: React.FC = () => {
                 </React.Fragment>
               );
             })}
-            <Group position="right" spacing={10}>
+            <Group position="right" spacing={8} mt={8}>
               <Button
-                uppercase
-                variant="default"
+                className={cx(classes.button, classes.cancelButton)}
                 onClick={() => handleClose()}
-                mr={3}
                 disabled={fields.options?.allowCancel === false}
+                variant="default"
               >
-                {locale.ui.cancel}
+                {locale.ui.cancel || 'Cancel'}
               </Button>
-              <Button uppercase variant="light" type="submit">
-                {locale.ui.confirm}
+              <Button className={classes.button} type="submit" variant="default">
+                {locale.ui.confirm || 'Confirm'}
               </Button>
             </Group>
           </Stack>
